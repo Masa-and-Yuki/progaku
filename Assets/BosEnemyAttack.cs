@@ -11,33 +11,34 @@ public class BossEnemyAttack : EnemyAttack
     public float spawnRange = 10f;
     public float effectHeight = 1.0f;
     public int attackCount = 5;
+    Animator anim;
 
-    // 近接攻撃（半径2f）
+    void Start()
+    {
+        anim = GetComponent<Animator>();
+    }
+
+    // ボスの足元へ範囲攻撃を出す。予告表示の後、範囲内のプレイヤーにダメージを与える。
     IEnumerator CloseRangeAttack(Enemy enemy, Player player)
     {
         float radius = 3f;
-
-        // ボスの真下に攻撃位置を設定
+        // エフェクトが地面に埋まらないよう、ボスの位置へ高さを加える。
         Vector3 pos = enemy.transform.position + new Vector3(0, effectHeight, 0);
 
-        // --- Warning（予兆） ---
+        // 攻撃範囲を知らせる予告エフェクトを表示する。
         GameObject warn = Instantiate(warningPrefab, pos, Quaternion.identity);
         warn.SetActive(true);
-
-        // 半径2f → 直径4f の円
+        // 直径で拡大するため、半径を 2 倍して大きさを合わせる。
         warn.transform.localScale = new Vector3(radius * 2, 0.1f, radius * 2);
-
         yield return new WaitForSeconds(warningTime);
-
         Destroy(warn);
 
-        // --- Hitbox（攻撃本体） ---
+        // 予告時間後に実際の攻撃判定用エフェクトへ切り替える。
         GameObject hit = Instantiate(hitboxPrefab, pos, Quaternion.identity);
         hit.SetActive(true);
-
         hit.transform.localScale = new Vector3(radius * 2, 1f, radius * 2);
 
-        // ダメージ判定
+        // 中心からの距離を判定し、攻撃範囲内なら一度だけダメージを与える。
         float dist = Vector3.Distance(player.transform.position, pos);
         if (dist <= radius)
         {
@@ -45,39 +46,39 @@ public class BossEnemyAttack : EnemyAttack
         }
 
         yield return new WaitForSeconds(hitboxTime);
-
         Destroy(hit);
     }
 
-
     public override IEnumerator ExecuteAttack(Enemy enemy, Player player)
     {
+        // 指定回数ぶん、攻撃予告→判定→消去の流れを繰り返す。
         for (int i = 0; i < attackCount; i++)
         {
             if (enemy == null || player == null)
                 yield break;
 
-            // ★ プレイヤーが攻撃してきたら近接攻撃を優先
+            // 被弾直後はランダム攻撃ではなく、足元への反撃を行う。
             if (enemy.wasHit)
             {
-                enemy.wasHit = false; // フラグリセット
+                anim.SetTrigger("Attack");
+                enemy.wasHit = false; // 同じ被弾に対して反撃を繰り返さないようフラグを戻す。
                 yield return StartCoroutine(CloseRangeAttack(enemy, player));
                 continue;
             }
 
-            // ★ ここからは今までのランダム攻撃
+            // それ以外は、ボスを中心としたランダムな地点に範囲攻撃を出す。
             Vector3 pos = enemy.transform.position;
             pos += new Vector3(Random.Range(-spawnRange, spawnRange), effectHeight, Random.Range(-spawnRange, spawnRange));
 
             GameObject warn = Instantiate(warningPrefab, pos, Quaternion.identity);
             warn.transform.localScale = new Vector3(attackRadius * 2, 0.1f, attackRadius * 2);
-
             yield return new WaitForSeconds(warningTime);
             Destroy(warn);
 
             GameObject hit = Instantiate(hitboxPrefab, pos, Quaternion.identity);
             hit.transform.localScale = new Vector3(attackRadius * 2, 1f, attackRadius * 2);
 
+            // 攻撃の瞬間に距離を判定し、範囲内ならダメージを与える。
             float dist = Vector3.Distance(player.transform.position, pos);
             if (dist <= attackRadius)
             {

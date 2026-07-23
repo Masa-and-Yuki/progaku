@@ -1,22 +1,23 @@
 using UnityEngine;
 
+/// <summary>正方形の床マップと、その外周を囲む壁を自動生成する。</summary>
 public class Mapping : MonoBehaviour
 {
-    public GameObject tilePrefab;   // 地面タイル
-    public GameObject wallPrefab;   // 壁のプレハブ
-    public int size = 15;           // フィールドの一辺の長さ
+    public GameObject tilePrefab;
+    public GameObject wallPrefab;
+    public int size = 15;
 
     void Start()
     {
+        // 床を先に作り、その後に境界となる壁を配置する。
         GenerateSquareMap();
         GenerateWalls();
     }
 
-    // ■のフィールドを生成（中心が0,0,0）
     void GenerateSquareMap()
     {
+        // 中心から左右・前後へ同じ距離だけ走査し、タイルを格子状に並べる。
         int half = size / 2;
-
         for (int x = -half; x <= half; x++)
         {
             for (int z = -half; z <= half; z++)
@@ -27,21 +28,20 @@ public class Mapping : MonoBehaviour
         }
     }
 
-    // 外周に壁を生成（中心が0,0,0）
     void GenerateWalls()
     {
+        // 四辺に壁を並べて、生成したマップの外周を囲む。
         int half = size / 2;
-
         for (int x = -half; x <= half; x++)
         {
-            Instantiate(wallPrefab, new Vector3(x, -1f, -half), Quaternion.identity); // 下
-            Instantiate(wallPrefab, new Vector3(x, -1f,  half), Quaternion.identity); // 上
+            Instantiate(wallPrefab, new Vector3(x, -1f, -half), Quaternion.identity);
+            Instantiate(wallPrefab, new Vector3(x, -1f, half), Quaternion.identity);
         }
 
         for (int z = -half; z <= half; z++)
         {
-            Instantiate(wallPrefab, new Vector3(-half, -1f, z), Quaternion.identity); // 左
-            Instantiate(wallPrefab, new Vector3( half, -1f, z), Quaternion.identity); // 右
+            Instantiate(wallPrefab, new Vector3(-half, -1f, z), Quaternion.identity);
+            Instantiate(wallPrefab, new Vector3(half, -1f, z), Quaternion.identity);
         }
     }
 }

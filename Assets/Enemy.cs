@@ -3,23 +3,28 @@ using UnityEngine;
 public class Enemy : MonoBehaviour
 {
     public bool isBoss = false;
+
     public int maxHP = 50;
     public int currentHP;
     public int attackPower = 10;
+
     public EnemyAttack attackLogic;
     public float attackInterval = 1.5f;
-    public bool wasHit = false;
     float attackTimer = 0f;
+
+    public bool wasHit = false;
 
     void Start()
     {
         if (isBoss)
         {
             maxHP = 300;
-            attackPower = 40;
+            attackPower = 20;
         }
 
         currentHP = maxHP;
+
+        PrintHP(); // 最初にログ出す
 
         if (attackLogic == null)
         {
@@ -30,16 +35,12 @@ public class Enemy : MonoBehaviour
     void Update()
     {
         attackTimer += Time.deltaTime;
-
         if (attackTimer < attackInterval)
-        {
             return;
-        }
 
         Player player = FindAnyObjectByType<Player>();
         if (attackLogic == null || player == null)
         {
-            Debug.LogWarning(gameObject.name + " cannot attack because attackLogic or player is missing.");
             attackTimer = 0f;
             return;
         }
@@ -51,26 +52,22 @@ public class Enemy : MonoBehaviour
     public void TakeDamage(int damage)
     {
         currentHP -= damage;
-        Debug.Log(gameObject.name + " took damage: " + damage);
-        Debug.Log(gameObject.name + " HP: " + currentHP);
         wasHit = true;
+
+        PrintHP(); // ログ出力
+
         if (currentHP <= 0)
         {
-            Die();
+            GameManager.instance.EnemyDefeated();
+            Destroy(gameObject);
         }
     }
 
-    void Die()
+    void PrintHP()
     {
         if (isBoss)
-        {
-            Debug.Log("Boss defeated");
-        }
+            Debug.Log("Boss HP: " + currentHP + " / " + maxHP);
         else
-        {
-            Debug.Log("Enemy defeated");
-        }
-
-        Destroy(gameObject);
+            Debug.Log("Enemy HP: " + currentHP + " / " + maxHP);
     }
 }

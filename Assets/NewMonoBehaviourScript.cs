@@ -8,6 +8,7 @@ public class NewMonoBehaviourScript : MonoBehaviour
 
     void HandleAttackStart()
     {
+        // プレイヤーの周囲にある Collider を取得し、Enemy を持つ相手だけを攻撃対象にする。
         float attackRange = 3.0f;
         Collider[] enemies = Physics.OverlapSphere(player.transform.position, attackRange);
 
@@ -24,6 +25,7 @@ public class NewMonoBehaviourScript : MonoBehaviour
 
     void Update()
     {
+        // 入力からプレイヤー状態を決定し、状態ごとの処理へ振り分ける。
         if (player == null)
         {
             return;
@@ -42,6 +44,7 @@ public class NewMonoBehaviourScript : MonoBehaviour
             player.currentState = Playerstate.Normal;
         }
 
+        // 状態に応じて移動・攻撃・防御の各入力処理を実行する。
         switch (player.currentState)
         {
             case Playerstate.Normal:
